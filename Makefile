@@ -1,6 +1,7 @@
 BINPATH = ../../gcc-arm-none-eabi-6-2017-q1/bin/
 STM32CUBEPATH = ../../STM32Cube_FW_F0_V1.8.0
 STM32F0HALPATH = $(STM32CUBEPATH)/Drivers/STM32F0xx_HAL_Driver
+STLINK = ../../stlink/build/Release/st-flash
 
 BINPREFIX = arm-none-eabi-
 # NOTE: expecting "/" if necessary to be in BINPATH, so that global bins can be used
@@ -26,6 +27,7 @@ $(STM32F0HALPATH)/Src/stm32f0xx_hal_spi.c \
 $(STM32CUBEPATH)/Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/system_stm32f0xx.c
 
 CXX_SOURCES = \
+Src/board.cc \
 Src/main.cc
 
 ASM_SOURCES =  \
@@ -64,6 +66,10 @@ LDSCRIPT = src/STM32F051R8Tx_FLASH.ld
 LDFLAGS = $(MCU) -specs=nosys.specs -T$(LDSCRIPT) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto
 
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
+
+# TODO: make flash address a var
+flash: $(BUILD_DIR)/$(TARGET).bin
+	$(STLINK) --reset write $(BUILD_DIR)/$(TARGET).bin 0x08000000
 
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(CXX_SOURCES:.cc=.o)))
