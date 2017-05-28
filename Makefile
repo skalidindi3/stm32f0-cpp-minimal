@@ -68,6 +68,8 @@ LDFLAGS = $(MCU) -specs=nosys.specs -T$(LDSCRIPT) -Wl,-Map=$(BUILD_DIR)/$(TARGET
 
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
 
+re: clean all
+
 # TODO: make flash address a var
 flash: $(BUILD_DIR)/$(TARGET).bin
 	$(STLINK) --reset write $(BUILD_DIR)/$(TARGET).bin 0x08000000
