@@ -49,12 +49,12 @@ bool Spi::xfer(uint8_t* txbuf, uint8_t* rxbuf, size_t num) {
 }
 
 // TODO: optimize to not use local buffer
-// TODO: use 0xFF instead of 0x00?
 bool Spi::skip(size_t num) {
-    static constexpr size_t kUpperBound = 256;
+    static constexpr size_t kUpperBound = 16;
     if (num >= kUpperBound)
         return false;
-    uint8_t buf[kUpperBound] = {0};
+    uint8_t buf[kUpperBound] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     return HAL_SPI_Transmit(&handle_, buf, num, HAL_MAX_DELAY) == HAL_OK;
 }
 
