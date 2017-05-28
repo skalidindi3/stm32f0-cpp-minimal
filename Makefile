@@ -28,6 +28,7 @@ $(STM32CUBEPATH)/Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/system_stm32
 
 CXX_SOURCES = \
 Src/board.cc \
+Src/spi.cc \
 Src/main.cc
 
 ASM_SOURCES =  \

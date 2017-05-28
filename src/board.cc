@@ -10,30 +10,6 @@ extern "C" void SysTick_Handler(void) {
     HAL_SYSTICK_IRQHandler();
 }
 
-// called by HAL_SPI_Init
-extern "C" void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi) {
-  GPIO_InitTypeDef GPIO_InitStruct;
-  if(hspi->Instance == SPI1) {
-    /* Peripheral clock enable */
-    __HAL_RCC_SPI1_CLK_ENABLE();
-
-    GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF0_SPI1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-  }
-}
-
-// called by HAL_SPI_DeInit
-extern "C" void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi) {
-  if(hspi->Instance == SPI1) {
-    __HAL_RCC_SPI1_CLK_DISABLE();
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
-  }
-}
-
 // uses high-speed internal clock
 void STM32F0Discovery::configureClock(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct;
@@ -91,24 +67,6 @@ void STM32F0Discovery::initGpio(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(led_port_, &GPIO_InitStruct);
-}
-
-void STM32F0Discovery::initSpi(void) {
-    hspi1_.Instance = SPI1;
-    hspi1_.Init.Mode = SPI_MODE_MASTER;
-    hspi1_.Init.Direction = SPI_DIRECTION_2LINES;
-    hspi1_.Init.DataSize = SPI_DATASIZE_8BIT;
-    hspi1_.Init.CLKPolarity = SPI_POLARITY_LOW;
-    hspi1_.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi1_.Init.NSS = SPI_NSS_SOFT;
-    hspi1_.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
-    hspi1_.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    hspi1_.Init.TIMode = SPI_TIMODE_DISABLE;
-    hspi1_.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-    hspi1_.Init.CRCPolynomial = 7;
-    hspi1_.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-    hspi1_.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-    HAL_SPI_Init(&hspi1_); // ?== HAL_OK
 }
 
 } // namespace board

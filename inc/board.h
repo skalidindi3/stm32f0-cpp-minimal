@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "spi.h"
 #include "stm32f0xx_hal.h"
 
 namespace board {
@@ -9,7 +10,8 @@ class Board {
   public:
     virtual void configureClock(void) = 0;
     virtual void initGpio(void) = 0;
-    virtual void initSpi(void) = 0;
+
+    virtual base::spi::Spi* spi() = 0;
 };
 
 class STM32F0Discovery : public Board {
@@ -18,12 +20,13 @@ class STM32F0Discovery : public Board {
 
     void configureClock(void) override;
     void initGpio(void) override;
-    void initSpi(void) override;
+
+    inline base::spi::Spi* spi() override { return &spi1_; }
 
     // TODO: error/assert function & call on failed HAL fns
 
     // NOTE: user button is active LOW
-    inline bool readUserButton(void) {
+    inline bool userButtonPushed(void) {
         return HAL_GPIO_ReadPin(user_button_port_, user_button_pin_) == GPIO_PIN_RESET;
     }
 
@@ -45,7 +48,7 @@ class STM32F0Discovery : public Board {
     // PA5     ------> SPI1_SCK
     // PA6     ------> SPI1_MISO
     // PA7     ------> SPI1_MOSI
-    SPI_HandleTypeDef hspi1_;
+    stm32::f0::Spi1 spi1_;
 
     // GPIO A0 --> User Button
     uint16_t user_button_pin_ = GPIO_PIN_0;

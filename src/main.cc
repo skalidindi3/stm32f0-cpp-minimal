@@ -5,9 +5,9 @@ int main(void)
     board::STM32F0Discovery dev;
     dev.configureClock();
     dev.initGpio();
-    dev.initSpi();
+    dev.spi()->init();
     while (1) {
-        if (dev.readUserButton()) {
+        if (dev.userButtonPushed()) {
             dev.blueLedSet();
             dev.greenLedReset();
         } else {
