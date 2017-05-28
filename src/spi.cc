@@ -6,26 +6,26 @@ extern "C" {
 
 // called by HAL_SPI_Init
 void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi) {
-  GPIO_InitTypeDef GPIO_InitStruct;
-  if(hspi->Instance == SPI1) {
-    /* Peripheral clock enable */
-    __HAL_RCC_SPI1_CLK_ENABLE();
+    GPIO_InitTypeDef GPIO_InitStruct;
+    if(hspi->Instance == SPI1) {
+        /* Peripheral clock enable */
+        __HAL_RCC_SPI1_CLK_ENABLE();
 
-    GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF0_SPI1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-  }
+        GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF0_SPI1;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    }
 }
 
 // called by HAL_SPI_DeInit
 void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi) {
-  if(hspi->Instance == SPI1) {
-    __HAL_RCC_SPI1_CLK_DISABLE();
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
-  }
+    if(hspi->Instance == SPI1) {
+        __HAL_RCC_SPI1_CLK_DISABLE();
+        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
+    }
 }
 
 } // extern "C"
