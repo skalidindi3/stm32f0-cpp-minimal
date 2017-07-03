@@ -1,5 +1,7 @@
 #include "board.h"
 
+extern "C" void __cxa_pure_virtual() { while (1); }
+
 int main(void)
 {
     board::STM32F0Discovery dev;
