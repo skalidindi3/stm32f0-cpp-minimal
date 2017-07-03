@@ -2,6 +2,7 @@ BINPATH = ../../gcc-arm-none-eabi-6-2017-q1/bin/
 STM32CUBEPATH = ../../STM32Cube_FW_F0_V1.8.0
 STM32F0HALPATH = $(STM32CUBEPATH)/Drivers/STM32F0xx_HAL_Driver
 STLINK = ../../stlink/build/Release/st-flash
+OPENOCDPATH = ../../openocd-0.10.0/out-osx
 
 BINPREFIX = arm-none-eabi-
 # NOTE: expecting "/" if necessary to be in BINPATH, so that global bins can be used
@@ -10,11 +11,11 @@ AS = $(BINPATH)$(BINPREFIX)gcc -x assembler-with-cpp
 OBJCOPY = $(BINPATH)$(BINPREFIX)objcopy
 AR = $(BINPATH)$(BINPREFIX)ar
 SIZE = $(BINPATH)$(BINPREFIX)size
+GDB = $(BINPATH)$(BINPREFIX)gdb
 
 TARGET = minimal
 
-DEBUG = 1
-OPT = -Og
+OPT = -O0
 
 BUILD_DIR = build
 
@@ -27,9 +28,9 @@ $(STM32F0HALPATH)/Src/stm32f0xx_hal_spi.c \
 $(STM32CUBEPATH)/Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/system_stm32f0xx.c
 
 CXX_SOURCES = \
-Src/board.cc \
-Src/spi.cc \
-Src/main.cc
+src/board.cc \
+src/spi.cc \
+src/main.cc
 
 ASM_SOURCES =  \
 $(STM32CUBEPATH)/Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/gcc/startup_stm32f051x8.s
@@ -47,17 +48,14 @@ C_INCLUDES =  \
 -I$(STM32CUBEPATH)/Drivers/CMSIS/Device/ST/STM32F0xx/Include/ \
 -I$(STM32F0HALPATH)/Inc
 
-ASFLAGS = $(MCU) $(OPT) -Wall -fdata-sections -ffunction-sections
+ASFLAGS = $(MCU) $(OPT) -Wall -fdata-sections -ffunction-sections -g
 ASFLAGS += -fno-common -ffreestanding -fno-exceptions -fno-non-call-exceptions
 
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
-CFLAGS += -fno-common -ffreestanding -fno-exceptions -fno-non-call-exceptions -flto
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -g
+CFLAGS += -fno-common -ffreestanding -fno-exceptions -fno-non-call-exceptions #-fno-inline-functions
+#CFLAGS += -flto
 CXXFLAGS = -std=c++11 -fno-rtti -fno-use-cxa-atexit
 # NOTE: -fno-exceptions cuts down ~4kB
-
-ifeq ($(DEBUG), 1)
-CFLAGS += -g
-endif
 
 # Generate dependency information
 #CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
@@ -89,7 +87,7 @@ $(BUILD_DIR)/%.o: %.cc Makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cc=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
-	$(AS) -c $(CFLAGS) $< -o $@
+	$(AS) -c $(ASFLAGS) $< -o $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
@@ -103,6 +101,12 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 
 $(BUILD_DIR):
 	mkdir -p $@
+
+gdbserver:
+	$(OPENOCDPATH)/bin/openocd -f $(OPENOCDPATH)/share/openocd/scripts/board/stm32f0discovery.cfg
+
+gdb: $(BUILD_DIR)/$(TARGET).elf
+	$(GDB) $(BUILD_DIR)/$(TARGET).elf
 
 clean:
 	-rm -rf $(BUILD_DIR)
