@@ -40,7 +40,12 @@ bool Spi::tx(uint8_t* buf, size_t num) {
 
 // TODO: optimize
 bool Spi::rx(uint8_t* buf, size_t num) {
-    return HAL_SPI_Receive(&handle_, buf, num, HAL_MAX_DELAY) == HAL_OK;
+    static constexpr size_t kUpperBound = 16;
+    if (num >= kUpperBound)
+        return false;
+    uint8_t outbuf[kUpperBound] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                                   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    return HAL_SPI_TransmitReceive(&handle_, outbuf, buf, num, HAL_MAX_DELAY) == HAL_OK;
 }
 
 // TODO: optimize
