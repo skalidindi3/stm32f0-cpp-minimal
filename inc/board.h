@@ -21,6 +21,17 @@ class STM32F0Discovery : public Board {
     void configureClock(void) override;
     void initGpio(void) override;
 
+    void sdCardPhysicalInit(void);
+    uint8_t sdCardSendCommand(uint8_t cmd, uint32_t arg, bool appcmd = false);
+    uint8_t sdCardSendCommandWithResponse(uint8_t cmd, uint32_t arg, uint32_t* response);
+    inline bool sdCardReady(void) {
+        uint8_t response;
+        spi1_.rx(&response, 1);
+        return response == 0xFF;
+    }
+    // NOTE: this is required!!!
+    inline void sdCardWaitUntilReady(void) { while (!sdCardReady()); }
+
     inline base::spi::Spi* spi() override { return &spi1_; }
 
     // TODO: error/assert function & call on failed HAL fns

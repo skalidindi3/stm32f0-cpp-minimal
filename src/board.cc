@@ -76,4 +76,102 @@ void STM32F0Discovery::initGpio(void) {
     HAL_GPIO_Init(led_port_, &GPIO_InitStruct);
 }
 
+void STM32F0Discovery::sdCardPhysicalInit(void) {
+    uint32_t responseVal;
+    uint8_t response;
+
+    selectSD();
+    spi()->skip(10);
+    deselectSD();
+    spi()->skip(2);
+
+#define CHECK(a, b) if (a != b) { blueLedSet(); __asm__ volatile ("bkpt"); return; }
+
+    selectSD();
+
+    // CMD0 --> Go Idle State
+    response = sdCardSendCommand(0, 0);
+    // response == 1?
+    CHECK(response, 1);
+
+    // TODO: AA is random pattern to check --> https://luckyresistor.me/cat-protector/software/sdcard-2/
+    // CMD8 --> Send If Cond
+    response = sdCardSendCommandWithResponse(8, 0x01aa, &responseVal);
+    if (response & 0x40) {
+        // SD v1
+        // CMD41 --> Send Op Cond
+        response = sdCardSendCommand(41, 0, true);
+        // response == 1?
+        CHECK(response, 1);
+    } else {
+        // (responseVal & 0x000000ff) != 0x000000aa?
+        CHECK((responseVal & 0x000000ff), 0x000000aa);
+        // SD v2
+        // CMD41 --> Send Op Cond
+        response = sdCardSendCommand(41, 0x40000000, true);
+        // response == 1?
+        CHECK(response, 1);
+        // CMD58 --> Read OCR
+        response = sdCardSendCommandWithResponse(58, 0, &responseVal);
+        // response == 1?
+        CHECK(response, 1);
+        // responseValue & 0xc0000000 --> high capacity
+    }
+
+    //// CMD16 --> Set Block Length
+    //response = sdCardSendCommand(16, 512);
+    //// response == 1?
+
+    deselectSD();
+}
+
+uint8_t STM32F0Discovery::sdCardSendCommand(uint8_t cmd, uint32_t arg, bool appcmd) {
+    uint8_t response;
+
+    sdCardWaitUntilReady();
+
+    if (appcmd) {
+        uint8_t appcmd_buf[] = {0x40 | 55, 0, 0, 0, 0};
+        spi()->tx(appcmd_buf, 5);
+        for (int i = 0; i < 8; i++) {
+            spi()->rx(&response, 1);
+            if ((response & 0x80) == 0) {
+                break;
+            }
+        }
+    }
+
+    uint8_t opcode = 0x40 | (0x3F & cmd);
+    spi()->tx(&opcode, 1);
+    uint32_t big_endian_arg = ((arg & 0x000000FF) << 24)
+                            | ((arg & 0x0000FF00) << 8)
+                            | ((arg & 0x00FF0000) >> 8)
+                            | ((arg & 0xFF000000) >> 24);
+    spi()->tx(reinterpret_cast<uint8_t*>(&big_endian_arg), 4);
+    uint8_t crc = cmd == 8 ? 0x87 : 0x95;
+    spi()->tx(&crc, 1);
+
+    for (int i = 0; i < 8; i++) {
+        spi()->rx(&response, 1);
+        if ((response & 0x80) == 0) {
+            break;
+        }
+    }
+    return response;
+}
+
+uint8_t STM32F0Discovery::sdCardSendCommandWithResponse(uint8_t cmd, uint32_t arg, uint32_t* response) {
+    uint8_t orig_response = sdCardSendCommand(cmd, arg);
+    for(int i = 0; i < 4; i++) {
+        spi()->rx(reinterpret_cast<uint8_t*>(response) + i, 1);
+    }
+    uint32_t big_endian_response = *response;
+    uint32_t little_endian_response = ((big_endian_response & 0x000000FF) << 24)
+                                    | ((big_endian_response & 0x0000FF00) << 8)
+                                    | ((big_endian_response & 0x00FF0000) >> 8)
+                                    | ((big_endian_response & 0xFF000000) >> 24);
+    *response = little_endian_response;
+    return orig_response;
+}
+
 } // namespace board
