@@ -44,6 +44,14 @@ class STM32F0Discovery : public Board {
         HAL_GPIO_WritePin(led_port_, blue_led_pin_, GPIO_PIN_RESET);
     }
 
+    // CS helpers
+    inline void selectSD(void) {
+        HAL_GPIO_WritePin(user_button_port_, sd_csn_pin_, GPIO_PIN_RESET);
+    }
+    inline void deselectSD(void) {
+        HAL_GPIO_WritePin(user_button_port_, sd_csn_pin_, GPIO_PIN_SET);
+    }
+
   private:
     // PA5     ------> SPI1_SCK
     // PA6     ------> SPI1_MISO
@@ -51,7 +59,9 @@ class STM32F0Discovery : public Board {
     stm32::f0::Spi1 spi1_;
 
     // GPIO A0 --> User Button
+    // GPIO A1 --> SD Card ~CS (Active LOW)
     uint16_t user_button_pin_ = GPIO_PIN_0;
+    uint16_t sd_csn_pin_ = GPIO_PIN_1;
     GPIO_TypeDef* user_button_port_ = GPIOA;
 
     // GPIO C8 --> Blue LED

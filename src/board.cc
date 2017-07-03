@@ -61,6 +61,13 @@ void STM32F0Discovery::initGpio(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(user_button_port_, &GPIO_InitStruct);
 
+    // Configure SD Card ~CS (Active LOW)
+    GPIO_InitStruct.Pin = sd_csn_pin_;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(user_button_port_, &GPIO_InitStruct);
+
     // Configure LEDs
     GPIO_InitStruct.Pin = blue_led_pin_|green_led_pin_;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
