@@ -76,6 +76,7 @@ void STM32F0Discovery::initGpio(void) {
     HAL_GPIO_Init(led_port_, &GPIO_InitStruct);
 }
 
+// embedded C++ callbacks?
 void STM32F0Discovery::sdCardPhysicalInit(void) {
     uint32_t responseVal;
     uint8_t response;

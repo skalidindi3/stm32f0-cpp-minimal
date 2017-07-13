@@ -1,0 +1,21 @@
+TODOs
+- get first sector, verify MBR
+- chan’s 5 function stubs
+- test general SD card ops
+- optimize SPI
+- music bundle
+* Enable I/D-Caches?
+
+
+http://elm-chan.org/docs/mmc/mmc_e.html
+https://github.com/LuckyResistor/CatProtect/blob/master/CatProtect/SDCard.cpp
+https://luckyresistor.me/cat-protector/software/sdcard-2/
+https://www.8051projects.net/mmc-sd-interface-fat16/sd-card-initialization.php
+
+
+if something fails, PANIC
+--> reset the chip
+
+on reset, check for SD
+--> if SD, init
+--> if no SD, set LED, sleep with wakeup trigger on card detect GPIO
